@@ -1,0 +1,152 @@
+package Game;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.Stack;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import base.Product;
+import base.ShoppingCart;
+import base.Storefront;
+import base.inventorymanager;
+import weapons.WeaponsInterface;
+
+
+public class Game {
+	public static void saveToFile(String filename, Product product, boolean append) {
+		PrintWriter pw;
+		try {
+			File file = new File(filename);
+			FileWriter fw = new FileWriter(file, append);
+			pw = new PrintWriter(fw);
+			
+			ObjectMapper objectMapper = new ObjectMapper();
+			String json = objectMapper.writeValueAsString(product);
+			pw.println(json);
+			
+			pw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+		public static LinkedList<Product> readFromFile(String filename) {
+			LinkedList<Product> products = new LinkedList<Product>();
+			try {
+				File file = new File(filename);
+				Scanner s = new Scanner(file);
+				
+				while(s.hasNext()) {
+					String json = s.nextLine();
+					ObjectMapper objectMapper = new ObjectMapper();
+					Product product = objectMapper.readValue(json, Product.class);
+					products.add(product);
+				}
+				s.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return products;
+		}
+
+	
+	public static void main(String[] args) {
+		Storefront store = new Storefront();
+		Queue<String> Cart = new LinkedList<String>();
+		Scanner scnr = new Scanner(System.in);
+		inventorymanager<String> inventory = new inventorymanager<String>();
+		
+		List<Product>productsList = readFromFile("inUsers.txt");															//Read products from the file (List)	
+		System.out.println("Hello! Welcome to Storefront, press the q key to view the store or p to exit");				//prompt user to enter store or leave
+		String userinput = scnr.nextLine();
+		if (userinput.equals("q")) 
+		{			
+			for(Product products : productsList) {
+				String text = (products.getName() + ", " + products.getDescription() + ", " + Integer.toString(products.getPrice()) + ", " + Integer.toString(products.getQuantity()));
+				System.out.println(text);
+				/*
+				ArrayList<String> al = new ArrayList<String>();
+				al.add(products.getName());
+				Collections.sort(al);
+				System.out.println(al);
+				*/
+			}
+		}
+		
+		else {																	
+			System.out.println("You can only view the store for now");		
+		}
+		System.out.println(" ");
+		System.out.println("Add an item to your cart by typing the name");
+		String itemname = scnr.nextLine();
+		for(Product products : productsList)
+		{																												//loop as many times as there are items
+		if (itemname.equals(products.getName())) 
+		{
+			Cart.add(itemname);																							//add method from generics																		
+			break;
+		} 
+		}
+		System.out.println(" ");
+		Cart.add(itemname);
+		System.out.println("Your shopping cart contains " + Cart.peek());												//viewCart queue
+		System.out.println("To purchase items in shopping cart, type purchase or to remove the item type remove");		//purchase or remove items from shopping cart
+		for(Product products : productsList) {																		
+		if (scnr.nextLine().equals("purchase"))  {																																			
+			store.purchaseProduct(products);
+			System.out.println("Thank you for your purchase");	
+			inventory.add(itemname);																					//add method from generics
+		} else {		
+			Cart.remove();																							//exercise remove()
+		}
+		System.out.println("To view your inventory, type view or else the store will close");	
+		if (scnr.nextLine().equals("view")) {
+			System.out.println(inventory.get());																	
+			} 
+		}
+		scnr.close();
+	}
+}
+
+package base;
+
+public class inventorymanager<T>{																//T is a datatype like string
+	private T s;
+	
+	public void add(T s) {																		//this.t specify the t variable inside
+		this.s = s;
+	}
+	public T get() {
+		return s;
+	}
+	
+}
+
+package base;
+
+import java.util.Queue;
+
+public class ShoppingCart<T> extends Storefront {
+	private T s;
+	
+	public void add(T s) {																		//this.t specify the t variable inside
+		this.s = s;
+	}
+	public T get() {
+		return s;
+	}
+	public void remove(T s) {
+		this.s = s;
+	}
+}
+
+
